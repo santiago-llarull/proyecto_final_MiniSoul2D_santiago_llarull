@@ -26,6 +26,5 @@ Como compilar y ejecutar:
 Estado Actual del proyecto:
   Configuración inicial y estructura del proyecto.
 
-Wiki: 
-  https://github.com/santiago-llarull/proyecto_final_MiniSoul2D_santiago_llarull/wiki/Mini-Soul-2D
-  
+**Enlace a la Wiki del Proyecto (Propuesta Detallada):**
+[Ver la Propuesta Completa del Proyecto aquí]( https://github.com/santiago-llarull/proyecto_final_MiniSoul2D_santiago_llarull/wiki/Mini-Soul-2D)
