@@ -8,17 +8,18 @@ El presente proyecto propone un videojuego de combate táctico en 2D para PC, ut
 
 La jugabilidad se centrará en la administración estratégica de recursos limitados, principalmente la vida y la estamina, obligando al jugador a decidir con precisión cuándo atacar, bloquear o esquivar. La experiencia está fuertemente inspirada en la filosofía de los juegos *soulslike*: cada error es penalizado de forma estricta, por lo que la victoria no depende de atacar sin parar, sino de la toma de decisiones bajo presión y el aprendizaje progresivo de los patrones del enemigo.
 
-## Tecnologías Utilizadas
+## Tecnologías Utilizadas y Previstas
 - **Lenguaje:** C#
 - **Framework de desarrollo:** MonoGame (versión `3.8.1.303`) con soporte específico para Windows mediante **MonoGame.Framework.WindowsDX**
-- **Plataforma / Runtime:** .NET 8.0
+- **Plataforma / Runtime:** SDK de .NET 8.0
 - **Entorno de desarrollo:** Visual Studio
+- **Base de Datos y Persistencia (Previsto):** SQLite y ADO.NET (tecnologías planificadas para el registro local de estadísticas, historial de partidas y métricas de rendimiento del jugador).
 
 ## Cómo compilar y ejecutar
 
-1. **Instalar .NET 8.0 SDK:** Asegurarse de contar con el SDK de .NET 8 instalado en el sistema.
-2. **Instalar Visual Studio:** Asegurarse de marcar la opción de desarrollo de escritorio con .NET durante la instalación.
-3. **Instalar extensiones y plantillas:** Instalar las extensiones y plantillas de MonoGame en Visual Studio para asegurar la compatibilidad.
+1. **Instalar el SDK de .NET:** Es un requisito estricto contar con el **SDK de .NET 8.0** instalado en tu sistema. Podés descargarlo desde la página oficial de Microsoft.
+2. **Instalar Visual Studio:** Asegurarse de marcar la opción de "Desarrollo de escritorio con .NET" durante la instalación.
+3. **Instalar extensiones y plantillas:** Instalar las extensiones oficiales de MonoGame en Visual Studio para asegurar la compatibilidad.
 4. **Clonar el repositorio:** Abrir una terminal de comandos en la carpeta donde se desea guardar el proyecto y ejecutar:
    ```bash
    git clone [https://github.com/santiago-llarull/proyecto_final_MiniSoul2D_santiago_llarull.git](https://github.com/santiago-llarull/proyecto_final_MiniSoul2D_santiago_llarull.git)
