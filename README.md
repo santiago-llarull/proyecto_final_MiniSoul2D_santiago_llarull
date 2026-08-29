@@ -1,6 +1,6 @@
 Mini Souls 2D
 
-INTENGRANTES: 
+INTEGRANTES: 
   santiago llarull 
 
 Descripcion: 
