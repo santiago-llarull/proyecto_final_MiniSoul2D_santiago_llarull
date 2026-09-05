@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Mini_Souls_2D")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fddacac023dbc1b082c01336157cf8598409845e")]
 [assembly: System.Reflection.AssemblyProductAttribute("Mini_Souls_2D")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Mini_Souls_2D")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
