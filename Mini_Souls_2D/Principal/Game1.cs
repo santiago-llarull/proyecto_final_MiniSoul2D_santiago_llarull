@@ -2,14 +2,18 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-namespace Mini_Souls_2D
+using Mini_Souls_2D.enemigos;
+using Mini_Souls_2D.herramientas;
+using Mini_Souls_2D.personaje;
+
+namespace Mini_Souls_2D.principal
 {
     public class Game1 : Game
     {
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
         private Principal nivelPrincipal;
-
+        
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);

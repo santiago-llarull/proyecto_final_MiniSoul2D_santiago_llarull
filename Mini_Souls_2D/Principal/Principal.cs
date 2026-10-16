@@ -2,8 +2,14 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
 using System.Collections.Generic;
+using Mini_Souls_2D.enemigos;
+using Mini_Souls_2D.herramientas;
 
-namespace Mini_Souls_2D
+using Mini_Souls_2D.enemigos;
+using Mini_Souls_2D.herramientas;
+using Mini_Souls_2D.personaje;
+
+namespace Mini_Souls_2D.principal
 {
     public class Principal
     {

@@ -1,7 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace Mini_Souls_2D
+using Mini_Souls_2D.enemigos;
+using Mini_Souls_2D.personaje;
+using Mini_Souls_2D.principal;
+
+namespace Mini_Souls_2D.herramientas
 {
     public class ParticulaDaño
     {

@@ -1,7 +1,13 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Mini_Souls_2D.herramientas;
 
-namespace Mini_Souls_2D
+using Mini_Souls_2D.herramientas;
+using Mini_Souls_2D.personaje;
+using Mini_Souls_2D.principal;
+
+
+namespace Mini_Souls_2D.enemigos
 {
     public class Dummy
     {
@@ -31,6 +37,9 @@ namespace Mini_Souls_2D
         {
             if (EstaVivo)
             {
+
+                // cambiar para hacerlo con rectangle en ves de centro textura
+
                 Vector2 centroTextura = new Vector2(Textura.Width / 2f, Textura.Height / 2f);
                 float escalaDummy = 80f / MathHelper.Max(Textura.Width, Textura.Height);
                 spriteBatch.Draw(Textura, Posicion, null, Color.White, 0f, centroTextura, escalaDummy, SpriteEffects.None, 0f);

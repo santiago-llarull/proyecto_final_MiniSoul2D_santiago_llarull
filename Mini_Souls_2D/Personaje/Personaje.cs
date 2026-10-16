@@ -1,9 +1,16 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Mini_Souls_2D.enemigos;
+using Mini_Souls_2D.herramientas;
 using System;
 
-namespace Mini_Souls_2D
+using Mini_Souls_2D.enemigos;
+using Mini_Souls_2D.herramientas;
+using Mini_Souls_2D.principal;
+
+
+namespace Mini_Souls_2D.personaje
 {
     public class Personaje
     {
@@ -55,7 +62,7 @@ namespace Mini_Souls_2D
                             float distanciaAlDummy = Vector2.Distance(Posicion, dummy.Posicion);
                             if (distanciaAlDummy < 110f)
                             {
-                                int daño = rng.Next(10, 31);
+                                int daño = rng.Next(1, 2);
                                 dummy.RecibirDaño(daño);
                                 AlAtacar?.Invoke(daño, dummy.Posicion);
                             }

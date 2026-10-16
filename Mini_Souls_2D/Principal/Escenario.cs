@@ -1,7 +1,12 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace Mini_Souls_2D
+using Mini_Souls_2D.enemigos;
+using Mini_Souls_2D.herramientas;
+using Mini_Souls_2D.personaje;
+
+
+namespace Mini_Souls_2D.principal
 {
     public class Escenario
     {
@@ -22,6 +27,8 @@ namespace Mini_Souls_2D
             BordesHitbox[1] = new Rectangle(margen, textura.Height - margen - grosor, anchoInterior, grosor);
             BordesHitbox[2] = new Rectangle(margen, margen, grosor, altoInterior);
             BordesHitbox[3] = new Rectangle(textura.Width - margen - grosor, margen, grosor, altoInterior);
+
+            //Ex
         }
 
         public void Draw(SpriteBatch spriteBatch)

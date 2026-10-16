@@ -1,2 +1,5 @@
-﻿using var game = new Mini_Souls_2D.Game1();
+﻿
+using Mini_Souls_2D.principal;
+
+using var game = new Game1();
 game.Run();
