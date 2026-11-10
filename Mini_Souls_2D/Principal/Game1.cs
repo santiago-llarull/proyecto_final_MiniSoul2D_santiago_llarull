@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-using Mini_Souls_2D.enemigos;
+using Mini_Souls_2D.Enemigos;
 using Mini_Souls_2D.herramientas;
 using Mini_Souls_2D.personaje;
 

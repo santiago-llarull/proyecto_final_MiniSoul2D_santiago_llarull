@@ -5,13 +5,12 @@ using Mini_Souls_2D.Enemigos;
 using Mini_Souls_2D.herramientas;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace Mini_Souls_2D.personaje
 {
     public class Personaje
     {
-        public Texture2D TexturaMovimiento { get; set; }
-        public Texture2D TexturaAtaque { get; set; }
         public Vector2 Posicion { get; set; }
         public float Velocidad { get; set; }
         public HitboxCircular Hitbox;
@@ -26,10 +25,27 @@ namespace Mini_Souls_2D.personaje
         public bool EstaHaciendoParry => tiempoParryRestante > 0f;
         public float CooldownParryRestante => cooldownParryRestante;
 
+        private enum Animacion
+        {
+            Reposo,
+            Caminar,
+            Ataque,
+            AtaqueAvance,
+            Guardia,
+            GuardiaAvance,
+            Rodar
+        }
+
+        private const int Columnas = 8;
+        private const int Filas = 4;
+        private const float TamañoDibujo = 200f;
+        private const int CuadroImpacto = 3;
+        private const float SegundosPorCuadro = 0.08f;
         private const float ActualizacionesPorSegundo = 60f;
         private const float DuracionAtaque = 0.64f;
         private const float MomentoImpacto = 0.32f;
         private const float AlcanceAtaque = 110f;
+        private const float DistanciaAtaqueAvance = 48f;
         private const int DañoAtaque = 1;
         private const float DuracionRodar = 0.20f;
         private const float MultiplicadorRodar = 3f;
@@ -38,23 +54,51 @@ namespace Mini_Souls_2D.personaje
         private const float Coseno60Grados = 0.5f;
         private const float PasoMaximoColision = 8f;
 
+        private static readonly TimeSpan CooldownAtaque = TimeSpan.FromSeconds(1);
+
+        // Cada fila de la hoja corresponde a una dirección sobre un solo eje.
+        private static readonly Vector2[] DireccionesPorFila =
+        {
+            Vector2.UnitY,
+            -Vector2.UnitY,
+            -Vector2.UnitX,
+            Vector2.UnitX
+        };
+
+        private readonly Dictionary<Animacion, Texture2D> texturas;
+        private Animacion animacionActual = Animacion.Reposo;
+        private int filaActual;
+        private int cuadroActual;
+        private float tiempoCiclo;
         private KeyboardState tecladoAnterior;
         private Vector2 direccionMirada = Vector2.UnitX;
+        private Vector2 direccionAtaque;
         private Vector2 direccionRodar;
         private float tiempoAtaque;
+        private TimeSpan cooldownAtaqueRestante;
         private float tiempoRodarRestante;
         private float tiempoParryRestante;
         private float cooldownParryRestante;
         private bool golpeRegistrado;
 
-        public Personaje(Texture2D texturaMov, Texture2D texturaAtq,
+        public Personaje(Texture2D reposo, Texture2D caminar, Texture2D ataque,
+            Texture2D ataqueAvance, Texture2D guardia, Texture2D guardiaAvance, Texture2D rodar,
             Vector2 posicionInicial, int vidaMaxima = 100)
         {
             if (vidaMaxima <= 0)
                 throw new ArgumentOutOfRangeException(nameof(vidaMaxima));
 
-            TexturaMovimiento = texturaMov;
-            TexturaAtaque = texturaAtq;
+            texturas = new Dictionary<Animacion, Texture2D>
+            {
+                [Animacion.Reposo] = reposo,
+                [Animacion.Caminar] = caminar,
+                [Animacion.Ataque] = ataque,
+                [Animacion.AtaqueAvance] = ataqueAvance,
+                [Animacion.Guardia] = guardia,
+                [Animacion.GuardiaAvance] = guardiaAvance,
+                [Animacion.Rodar] = rodar
+            };
+
             Posicion = posicionInicial;
             Velocidad = 5f;
             VidaMaxima = vidaMaxima;
@@ -96,6 +140,9 @@ namespace Mini_Souls_2D.personaje
 
             tiempoParryRestante = Math.Max(0f, tiempoParryRestante - deltaTime);
             cooldownParryRestante = Math.Max(0f, cooldownParryRestante - deltaTime);
+            cooldownAtaqueRestante -= gameTime.ElapsedGameTime;
+            if (cooldownAtaqueRestante < TimeSpan.Zero)
+                cooldownAtaqueRestante = TimeSpan.Zero;
 
             if (EstaRodando)
             {
@@ -105,7 +152,7 @@ namespace Mini_Souls_2D.personaje
 
             if (EstaAtacando)
             {
-                Atacar(enemigos, deltaTime);
+                Atacar(enemigos, paredesDelMapa, deltaTime);
                 return;
             }
 
@@ -119,16 +166,28 @@ namespace Mini_Souls_2D.personaje
             if (pulsaV)
                 Parry();
 
-            if (!EstaHaciendoParry && mouse.LeftButton == ButtonState.Pressed)
+            if (!EstaHaciendoParry && cooldownAtaqueRestante == TimeSpan.Zero
+                && mouse.LeftButton == ButtonState.Pressed)
             {
-                EstaAtacando = true;
-                tiempoAtaque = 0f;
-                golpeRegistrado = false;
+                IniciarAtaque(movimiento != Vector2.Zero);
                 return;
             }
 
             Cubrir(mouse.RightButton == ButtonState.Pressed);
+            Vector2 posicionAnterior = Posicion;
             Moverse(movimiento, paredesDelMapa, deltaTime);
+
+            bool seMovio = Posicion != posicionAnterior;
+            if (EstaCubriendo || EstaHaciendoParry)
+            {
+                AnimarCiclo(seMovio ? Animacion.GuardiaAvance : Animacion.Guardia,
+                    direccionMirada, deltaTime);
+            }
+            else
+            {
+                AnimarCiclo(seMovio ? Animacion.Caminar : Animacion.Reposo,
+                    seMovio ? movimiento : Vector2.Zero, deltaTime);
+            }
         }
 
         private static Vector2 LeerMovimiento(KeyboardState teclado)
@@ -145,14 +204,44 @@ namespace Mini_Souls_2D.personaje
 
         private void Moverse(Vector2 movimiento, Rectangle[] paredes, float deltaTime)
         {
-         
             Desplazar(movimiento * Velocidad * ActualizacionesPorSegundo * deltaTime,
                 paredes);
         }
 
-        private void Atacar(ArrayList enemigos, float deltaTime)
+        private void IniciarAtaque(bool conAvance)
         {
-            tiempoAtaque += deltaTime;
+            EstaAtacando = true;
+            tiempoAtaque = 0f;
+            cooldownAtaqueRestante = CooldownAtaque;
+            golpeRegistrado = false;
+            filaActual = ObtenerFila(direccionMirada);
+            direccionAtaque = DireccionesPorFila[filaActual];
+            animacionActual = conAvance ? Animacion.AtaqueAvance : Animacion.Ataque;
+            cuadroActual = 0;
+        }
+
+        private void Atacar(ArrayList enemigos, Rectangle[] paredes, float deltaTime)
+        {
+            float tiempoAnterior = tiempoAtaque;
+            tiempoAtaque = Math.Min(DuracionAtaque, tiempoAtaque + deltaTime);
+
+            if (animacionActual == Animacion.AtaqueAvance && tiempoAnterior < MomentoImpacto)
+            {
+                float tiempoAvance = Math.Min(tiempoAtaque, MomentoImpacto) - tiempoAnterior;
+                Vector2 avance = direccionAtaque * (DistanciaAtaqueAvance * tiempoAvance / MomentoImpacto);
+                Desplazar(avance, paredes);
+            }
+
+            // El cuarto cuadro muestra el corte y empieza en el momento del impacto.
+            if (tiempoAtaque < MomentoImpacto)
+            {
+                cuadroActual = CuadroDeProgreso(tiempoAtaque / MomentoImpacto, CuadroImpacto);
+            }
+            else
+            {
+                float progreso = (tiempoAtaque - MomentoImpacto) / (DuracionAtaque - MomentoImpacto);
+                cuadroActual = CuadroImpacto + CuadroDeProgreso(progreso, Columnas - CuadroImpacto);
+            }
 
             if (!golpeRegistrado && tiempoAtaque >= MomentoImpacto)
             {
@@ -161,7 +250,7 @@ namespace Mini_Souls_2D.personaje
                 {
                     foreach (object elemento in enemigos.ToArray())
                     {
-                        if (elemento is IEnemigo enemigo && enemigo.EstaVivo
+                        if (elemento is Enemigo enemigo && enemigo.EstaVivo
                             && Vector2.DistanceSquared(Posicion, enemigo.Posicion)
                                 < AlcanceAtaque * AlcanceAtaque)
                         {
@@ -186,8 +275,12 @@ namespace Mini_Souls_2D.personaje
             if (EstaHaciendoParry)
                 return false;
 
-            direccionRodar = movimiento == Vector2.Zero ? -direccionMirada : movimiento;
+            Vector2 direccionElegida = movimiento == Vector2.Zero ? -direccionMirada : movimiento;
+            filaActual = ObtenerFila(direccionElegida);
+            direccionRodar = DireccionesPorFila[filaActual];
             tiempoRodarRestante = DuracionRodar;
+            animacionActual = Animacion.Rodar;
+            cuadroActual = 0;
             return true;
         }
 
@@ -200,6 +293,7 @@ namespace Mini_Souls_2D.personaje
             bool completo = Desplazar(desplazamiento, paredes);
             tiempoRodarRestante = completo
                 ? Math.Max(0f, tiempoRodarRestante - tiempoPaso) : 0f;
+            cuadroActual = CuadroDeProgreso(1f - tiempoRodarRestante / DuracionRodar, Columnas);
         }
 
         private void Parry()
@@ -211,7 +305,7 @@ namespace Mini_Souls_2D.personaje
             cooldownParryRestante = CooldownParry;
         }
 
-        public bool RecibirDaño(int daño, IEnemigo atacante)
+        public bool RecibirDaño(int daño, Enemigo atacante)
         {
             if (atacante == null)
                 throw new ArgumentNullException(nameof(atacante));
@@ -219,7 +313,7 @@ namespace Mini_Souls_2D.personaje
             return RecibirDaño(daño, atacante.Posicion, atacante);
         }
 
-        public bool RecibirDaño(int daño, Vector2 origenDelAtaque, IEnemigo atacante = null)
+        public bool RecibirDaño(int daño, Vector2 origenDelAtaque, Enemigo atacante = null)
         {
             if (daño <= 0 || !EstaVivo || EstaRodando)
                 return false;
@@ -242,6 +336,8 @@ namespace Mini_Souls_2D.personaje
                 EstaAtacando = false;
                 EstaCubriendo = false;
                 tiempoParryRestante = 0f;
+                animacionActual = Animacion.Reposo;
+                cuadroActual = 0;
             }
 
             return true;
@@ -259,6 +355,9 @@ namespace Mini_Souls_2D.personaje
 
         private bool Desplazar(Vector2 desplazamiento, Rectangle[] paredes)
         {
+            if (desplazamiento == Vector2.Zero)
+                return true;
+
             int pasos = Math.Max(1, (int)Math.Ceiling(
                 desplazamiento.Length() / PasoMaximoColision));
             Vector2 paso = desplazamiento / pasos;
@@ -290,18 +389,41 @@ namespace Mini_Souls_2D.personaje
             return false;
         }
 
+        private void AnimarCiclo(Animacion animacion, Vector2 direccion, float deltaTime)
+        {
+            float duracion = SegundosPorCuadro * Columnas;
+            tiempoCiclo = animacionActual == animacion ? (tiempoCiclo + deltaTime) % duracion : 0f;
+            animacionActual = animacion;
+            cuadroActual = CuadroDeProgreso(tiempoCiclo / duracion, Columnas);
+
+            if (direccion != Vector2.Zero)
+                filaActual = ObtenerFila(direccion);
+        }
+
+        private static int ObtenerFila(Vector2 direccion)
+        {
+            // Las hojas están ordenadas: abajo, arriba, izquierda, derecha.
+            if (Math.Abs(direccion.X) >= Math.Abs(direccion.Y))
+                return direccion.X < 0f ? 2 : 3;
+
+            return direccion.Y < 0f ? 1 : 0;
+        }
+
+        private static int CuadroDeProgreso(float progreso, int cantidad)
+        {
+            return Math.Min(cantidad - 1, (int)(progreso * cantidad));
+        }
+
         public void Draw(SpriteBatch spriteBatch)
         {
-            if (TexturaMovimiento == null)
-                return;
-
-            int ancho = TexturaMovimiento.Width / 8;
-            int alto = TexturaMovimiento.Height / 4;
-            Rectangle recorte = new Rectangle(0, 0, ancho, alto);
+            Texture2D textura = texturas[animacionActual];
+            int ancho = textura.Width / Columnas;
+            int alto = textura.Height / Filas;
+            Rectangle recorte = new Rectangle(cuadroActual * ancho, filaActual * alto, ancho, alto);
             Vector2 centro = new Vector2(ancho / 2f, alto / 2f);
-            float escala = 100f / MathHelper.Max(ancho, alto);
+            float escala = TamañoDibujo / MathHelper.Max(ancho, alto);
 
-            spriteBatch.Draw(TexturaMovimiento, Posicion, recorte, Color.White,
+            spriteBatch.Draw(textura, Posicion, recorte, Color.White,
                 0f, centro, escala, SpriteEffects.None, 0f);
         }
     }
